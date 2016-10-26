@@ -97,11 +97,19 @@ Answer the following questions:
 
 1. When executing any variant of your WordCount job using the input file ```laboratory/gutenberg_big.txt```, how many **map tasks** are launched?
 2. How does the number of reducers affect performance? 
+ -  increase framework overhead (not good) (eg: network overhead)
 3. How many reducers can be executed in parallel?
+ - but increase the load balancing and lower the cost of failures (good) For general cases: #Reducers can be executed in parallel depends on #CPU, #Cores in cluster, and also depends on #unique_key to be delivered to reducers #Tasks run in parallel per CPU = #Cores * #HW-threads per core (eg HyperThreading)
 4. Use the JobHistory web interface to examine job counters for all three variants of your WordCount job: can you explain the differences among them? 
   - **[Hint]** For example, look at the amount of bytes shuffled, but also try to spot other differences
+  - Reduces #map output records due to the in-memory combiner technique -> somehow reduces #shuffle bytes
+  - Be careful with memory caching (manually), less overhead (materialization of output) Combiner:
+  - combines map output records significantly => significantly reduces #shuffle bytes (reduce network traffic)
 5. Can you explain how does the distribution of words affect your Job?
   - **[Hint]** You should look at any skew in the distribution of execution times of your tasks.
+  - inbalance load between reducers
+  - high load at reducers processing most frequent words => slower, finish later
+  - low load at reducers processing lowest frequent words => faster, finish earlier, have to wait => overall, the performance decreases  => requires a better version of Partitioner
 
 > Zipf's law states that given some corpus of natural language utterances, the frequency of any word is inversely proportional to its rank in the frequency table. Thus the most frequent word will occur approximately twice as often as the second most frequent word, three times as often as the third most frequent word, etc. For example, in the *Brown Corpus of American English* text, the word "*the*" is the most frequently occurring word, and by itself accounts for nearly 7% of all word occurrences. The second-place word "*of*" accounts for slightly over 3.5% of words, followed by "*and*". Only 135 vocabulary items are needed to account for half the Brown Corpus. (wikipedia.org)
 
@@ -139,8 +147,11 @@ To test your code use the file `/laboratory/quote.txt`, or the one provided in t
 Answer the following questions (in a simple text file):
 
 1. How does the number of reducer influence the behavior of the Pairs approach?
+ - Because the pair approach will emit a very large amount of intermediate values. If #reducer is small, reducers will be suffered from work load The pair approach brings more parallelism, but also increases communication cost
 2. Why does `TextPair` need to be Comparable?
+ - Because we have to group/sort the intermediate values at reducer by key, which is a TextPair object
 3. Can you use the implemented reducers as *Combiners*?
+ - Yes, because the operations sum are distributive
 4. How many output bytes are spilled by the mappers to produce intermediate files? Keep this value in mind and compare to the "stripes" approach, next.
 
 
@@ -175,10 +186,16 @@ To test your code use the file `/laboratoryquote.txt`, or the one provided in th
 Answer the following questions (in a simple text file):
 
 1. Can you use the implemented reducers as *Combiner*?
+ - No, because the key input and key output of Reducer is different. The key output is word pair
 2. Do you think Stripes could be used with the in-memory combiner pattern?
+ - Yes, we can
 3. How does the number of reducer influence the behavior of the Stripes approach?
+ - increase framework overhead (not good) (eg: network overhead)
+ - but increase the load balancing and lower the cost of failures (good)
 4. Why `StringToIntMapWritable` is not Comparable (differently from `TextPair`)?
+ - We used StringToIntMapWritable to emit value, not the key. We didn't make any comparison or sort on the value
 5. Using the JobHistory Web Interface, compare the shuffle phase of *Pair* and *Stripes* design patterns. How many output bytes are spilled by the mappers to produce intermediate files?
+ - Stripes has much less shuffle data than pair (more compact)
 
 
 ## EXERCISE 4:: Relative term co-occurrence and the ''Order Inversion'' Design Pattern
@@ -202,9 +219,13 @@ To run the final version of your job, you can use a larger file, `/laboratory/in
 Answer the following questions. In answering the questions below, consider the role of the combiner.
 
 1. Do you think the Order Inversion approach is 'faster' than a naive approach with multiple jobs? Think about a compound job in which you compute the numerator and the denominator separately, and then perform the computation of the relative frequency
+ - For example, consider implementing a compound job in which you compute the numerator and the denominator separately, and then perform the computation of the relative frequency Yes, it's faster than chaining multiple jobs. It will cost a lot I/O disk to write intermediate output for the next jobs in the chain.
 2. What is the impact of the use of a 'special' compound key on the amounts of shuffled bytes?
+ - Even increases the shuffled bytes if using without combiner. If we use combiner, the impact is not noticeable
 3. How does the default partitioner works with `TextPair`? Can you imagine a different implementation that does not change the Partitioner?
+ - the default partitioner is HashPartitioner which hashes both 2 fields of the TextPair key. If we don't want to change partitioner => use stripes method
 4. For each key, the reducer receives its marginal before the co-occurrence with the other words. Why?
+ - Because of the sort phase: we sort on TextPair objects such that the objects with marginal have higher order than the ones without
 
 ## EXERCISE 5:: Joins
 In MapReduce, the term ''join'' refers to merging two different dataset stored as unstructured files in HDFS. As for databases, in MapReduce there are many different kind of joins, each with its use-cases and constraints. In this laboratory the student will implement two different kinds of MapReduce join techniques:
