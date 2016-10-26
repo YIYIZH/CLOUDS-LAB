@@ -1,5 +1,4 @@
 # MapReduce Laboratory
-kkkkk
 The focus of this lab is on [Hadoop][hadoop] and the client API. This is done through a series of exercises:
 
 + The classic Word Count and variations on the theme
