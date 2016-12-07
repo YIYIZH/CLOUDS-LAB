@@ -4,7 +4,7 @@
 ### Questions:
 - **Q1: Compare execution times between your Pig and Hadoop MapReduce jobs: which is faster? What are the overheads in Pig?**
   
-	Hadoop Mapreduce has better performance but require more develop time. Pig is short and quicky written, optimizations are already done automatically. But it supports limited set of operations, while hadoop mapreduce can be controlled and designed be developpers. 
+	- Hadoop Mapreduce has better performance but require more develop time. Pig is short and quicky written, optimizations are already done automatically. But it supports limited set of operations, while hadoop mapreduce can be controlled and designed be developpers. 
 
 - **Q2: What does a GROUP BY command do? In which phase of MapReduce is GROUP BY performed in this exercise and in general?**
 
