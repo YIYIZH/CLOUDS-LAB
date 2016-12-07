@@ -8,12 +8,12 @@
 
 - **Q2: What does a GROUP BY command do? In which phase of MapReduce is GROUP BY performed in this exercise and in general?**
 
-	Group by: Group rows by one or more keys.   
-	In map phase it sets the key for group, here the key is each word. The Reducer phase processes collection of values for each key and write them to the disk. Here it does the grouping and sorting by word.
+	- Group by: Group rows by one or more keys.   
+	- In map phase it sets the key for group, here the key is each word. The Reducer phase processes collection of values for each key and write them to the disk. Here it does the grouping and sorting by word.
 - **Q3: What does a FOREACH command do? In which phase of MapReduce is FOREACH performed in this exercise and in general?**
 
-	FOREACH: iterates row-by-row through the whole dataset to performs operations.   
-	In reduce phase FOREACH is used. It is used to count the frequncy (sum the values) for each word(key).
+	- FOREACH: iterates row-by-row through the whole dataset to performs operations.   
+	- In reduce phase FOREACH is used. It is used to count the frequncy (sum the values) for each word(key).
 	
 ##Exercise 2:: Working with Online Social Networks data
 
@@ -31,12 +31,12 @@ Join operation requires shuffling data alot
 	
 - **Q2: Try to set the parallelism with different number of reducers. What can you say about the load balancing between reducers?**   
 
-	Some reducers have to work as 2-3 times as the other reducers (not good).
+	- Some reducers have to work as 2-3 times as the other reducers (not good).
 
 
 - **Q3: Have you verified your results? Does your result contain duplicate tuples? Do you have loops (tuples that points from one user to the same user)? What operations do you use to remove duplicates?**
 
-	There are no duplicate tuples and no loops. I use the DISTINCT operation.
+	- There are no duplicate tuples and no loops. I use the DISTINCT operation.
 - **Q4: How many MapReduce jobs does your Pig script generate? Explain why**   
 
 	- There are 4 jobs
